@@ -33,3 +33,11 @@ X-Requested-With: XMLHttpRequest
 Connection: keep-alive
 java.lang.ClassNotFoundException: PrimitiveServlet?num=8&indextype=manht&_req_seqid=0xb493bdf900111fec&asyn=1&t=1548508445305&sid
 ```
+
+#注意点
+
+* HTTP 请求对象由实现了 javax.servlet.http.HttpServletRequest 的 HttpRequest 类来代表。一个 HttpRequest对象将会给转换为一个HttpServletRequest实例并传递给被调用 的 servlet 的 service 方法。因此，每个 HttpRequest 实例必须适当增加字段，以便 servlet 可以使用它们。值需要赋给 HttpRequest 对象，包括 URI，查询字符串，参数，cookies 和其他 的头部等等。因为连接器并不知道被调用的 servlet 需要哪个值，所以连接器必须从 HTTP 请求 中解析所有可获得的值。
+
+*  解析一个 HTTP 请求牵涉昂贵的字符串和其他操作，假如只是解 析 servlet 需要的值的话，连接器就能节省许多 CPU 周期。例如，假如 servlet 不 解析任何一 个 请 求 参 数 ( 例 如 不 调 用 javax.servlet.http.HttpServletRequest 的 getParameter, getParameterMap,getParameterNames 或者 getParameterValues 方法)，连接器就不需要从查询 字符串或者 HTTP 请求内容中解析这些参数。Tomcat 的默认连接器(和本章应用程序的连接器) 试图不解析参数直到 servlet 真正需要它的时候，通过这样来获得更高效率。
+
+* Tomcat 的默认连接器和我们的连接器使用 SocketInputStream 类来从套接字的 InputStream 中读取字节流。一个 SocketInputStream 实例对从套接字的 getInputStream 方法中返回的 java.io.InputStream 实例进行包装。 SocketInputStream 类提供了两个重要的方法: readRequestLine 和 readHeader。readRequestLine 返回一个 HTTP 请求的第一行。例如，这行 包括了 URI，方法和 HTTP 版本。因为从套接字的输入流中处理字节流意味着只读取一次，从第 一个字节到最后一个字节(并且不回退)，因此 readHeader 被调用之前，readRequestLine 必须 只被调用一次。readHeader 每次被调用来获得一个头部的名/值对，并且应该被重复的调用知道 所有的头部被读取到。readRequestLine 的返回值是一个 HttpRequestLine 的实例，而 readHeader 的返回值是一个 HttpHeader 对象
