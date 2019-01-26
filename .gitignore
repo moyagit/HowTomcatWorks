@@ -1,0 +1,7 @@
+output/
+.idea/*
+
+*.swo
+*.swp
+*.iws
+*.ipr
